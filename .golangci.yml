@@ -1,0 +1,33 @@
+linters-settings:
+  golint:
+    enabled: true
+  govet:
+    enabled: true
+  staticcheck:
+    enabled: true
+  gocyclo:
+    enabled: true
+    min-complexity: 15
+  unconvert:
+    enabled: true
+  gosimple:
+    enabled: true
+  interfacer:
+    enabled: true
+  maligned:
+    enabled: true
+  errcheck:
+    enabled: true
+
+linters:
+  enable-all: true
+  # disable:
+  #   - exhaustive
+  #   - gochecknoglobals
+  #   - gochecknoinits
+  #   - gochecknoinitserrcheck
+  #   - gochecknoglobalserrcheck
+  #   - wsl
+  #   - stylecheck
+  #   - interfacer
+  #   - unconvert
