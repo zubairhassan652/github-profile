@@ -11,8 +11,9 @@ import (
 func main() {
 	app := settings.InitApp()
 	fs := http.FileServer(http.Dir("static"))
-	app.Handler.Handle("/static/", http.StripPrefix("/static/", fs))
-	http.Handle("/", app.Handler)
+	app.ChiHandler.Handle("/static/*", http.StripPrefix("/static/", fs))
+	http.Handle("/", app.ChiHandler)
+
 	fmt.Println("App listening at 8080")
 
 	err := http.ListenAndServe(":8080", nil)

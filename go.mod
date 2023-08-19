@@ -3,7 +3,7 @@ module github.com/zubairhassan652/go-gorilla-mux
 go 1.21.0
 
 require (
-	github.com/gorilla/mux v1.8.0
+	github.com/go-chi/chi v1.5.4
 	go.mongodb.org/mongo-driver v1.12.1
 	gorm.io/driver/sqlite v1.5.2
 	gorm.io/gorm v1.25.3

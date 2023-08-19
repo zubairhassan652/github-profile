@@ -7,7 +7,7 @@ import (
 	"log"
 	"sync"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi"
 	"github.com/zubairhassan652/go-gorilla-mux/users"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -18,15 +18,13 @@ import (
 
 type App struct {
 	// Its a app level router
-	Handler *mux.Router
-
-	// List of user defined apps
-	// installedApps map[string]*mux.Router
-
+	ChiHandler *chi.Mux
 }
 
+// sync.Once is used to implement singleton pattern.
 var initializer sync.Once
 
+// app instance.
 var app *App
 
 // app level db.
@@ -36,9 +34,10 @@ var Mongo *mongo.Client
 
 func setup() {
 	app = new(App)
-	app.Handler = mux.NewRouter()
-	app.Handler.Use(DBMiddleware)
-	app.registerRoutes(appList())
+	app.ChiHandler = chi.NewRouter()
+	app.ChiHandler.Use(DBMiddleware)
+
+	app.registerChiRoutes(appListChi())
 	// Mongo = app.initMongo()
 	DB = app.initDB()
 }
@@ -57,8 +56,8 @@ func GetMongo() *mongo.Client {
 	return Mongo
 }
 
-func appList() map[string]*mux.Router {
-	return map[string]*mux.Router{
+func appListChi() map[string]*chi.Mux {
+	return map[string]*chi.Mux{
 		"users": users.ExposeRoutes(),
 	}
 }
@@ -94,21 +93,9 @@ func (app *App) initMongo() *mongo.Client {
 	return client
 }
 
-// func (app *App) getRegisteredApps() map[string]*mux.Router {
-// 	return app.installedApps
-// }
-
-// func (app *App) setRegisteredApps(installedApps map[string]*mux.Router) {
-// 	app.installedApps = installedApps
-// }
-
-// func (app *App) registerRoute(path string, handler http.HandlerFunc) {
-// 	app.Handler.HandleFunc(path, handler)
-// }
-
-func (app *App) registerRoutes(installedApps map[string]*mux.Router) {
+func (app *App) registerChiRoutes(installedApps map[string]*chi.Mux) {
 	for _, r := range installedApps {
-		app.Handler.NewRoute().Handler(r)
+		app.ChiHandler.Mount("/", r)
 	}
 }
 
@@ -132,36 +119,4 @@ func (app *App) registerRoutes(installedApps map[string]*mux.Router) {
 // 	}
 
 // 	return "", fmt.Errorf("project root not found")
-// }
-
-// findAppFolderAndRoutes find routes.go file in the app
-// func findAppFolderAndRoutes(root string) (string, error) {
-// 	var foundPath string
-
-// 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
-// 		if err != nil {
-// 			return err
-// 		}
-
-// 		if info.IsDir() && strings.ToLower(info.Name()) == "users" {
-// 			routesFilePath := filepath.Join(path, "routes.go")
-// 			if _, err := os.Stat(routesFilePath); err == nil {
-// 				foundPath = routesFilePath
-// 				return filepath.SkipDir // Skip searching further within this directory
-// 			}
-// 		}
-
-// 		return nil
-// 	})
-
-// 	return foundPath, err
-// }
-
-// func getRegisteredRoutesFromApp(name string) {
-// 	root, err := findProjectRoot()
-// 	CheckError(err)
-// 	file, err := findAppFolderAndRoutes(root)
-// 	CheckError(err)
-
-// 	appRouter := ""
 // }

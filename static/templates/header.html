@@ -1,3 +1,43 @@
 {{define "header"}}
 <h1>This is header content</h1>
+
+<div id="app"></div>
+<script src="https://unpkg.com/vue@next"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue3-sfc-loader"></script>
+<script>
+
+    const options = {
+
+        moduleCache: {
+            vue: Vue,
+        },
+
+        getFile(url) {
+            return fetch(url).then(response => response.ok ? response.text() : Promise.reject(response));
+        },
+
+        addStyle(styleStr) {
+            const style = document.createElement('style');
+            style.textContent = styleStr;
+            const ref = document.head.getElementsByTagName('style')[0] || null;
+            document.head.insertBefore(style, ref);
+        },
+
+        log(type, ...args) {
+            console.log(type, ...args);
+        }
+    }
+
+    const { loadModule, version } = window["vue3-sfc-loader"];
+
+    const app = Vue.createApp({
+        components: {
+            'component': Vue.defineAsyncComponent(() => loadModule('/static/myComponent.vue', options)),
+        },
+        template: `<component></component> <sub>supported by: vue3-sfc-loader v${version}</sub>`
+    });
+
+    app.mount('#app');
+</script>
+
 {{end}}
