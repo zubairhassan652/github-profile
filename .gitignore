@@ -1,7 +1,9 @@
 # Golang dependency directories (created by `go get`)
+vendor/
+
+# IDE's config and logs
 .idea/
 .vscode/
-vendor/
 
 # Compiled Object files, Static and Dynamic libs (Shared Objects)
 *.o
@@ -20,5 +22,9 @@ vendor/
 *.dll
 *.so
 *.dylib
+
+# Local DB's
+sqlite.db 
+sqlite3.db
 
 

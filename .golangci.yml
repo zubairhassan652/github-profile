@@ -21,7 +21,10 @@ linters-settings:
 
 linters:
   enable-all: true
-  # disable:
+  disable:
+    - gofumpt
+    - depguard
+    - gci
   #   - exhaustive
   #   - gochecknoglobals
   #   - gochecknoinits
