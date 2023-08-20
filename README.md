@@ -25,6 +25,6 @@ Using standard way:
 
 Using docker file:
 
->`docker build -t go-gorilla-mux .`
+>`docker build -t go-vue .`
 
->`docker run -p 8080:8080 go-gorilla-mux`
+>`docker run -p 8080:8080 go-vue`

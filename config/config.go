@@ -1,15 +1,16 @@
-// Settings package is used to initialized app with default settings
-package settings
+// Config package is used to initialized app with default settings
+package config
 
 import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"sync"
 
 	"github.com/go-chi/chi"
-	"github.com/zubairhassan652/go-gorilla-mux/users"
-	"gorm.io/driver/sqlite"
+	"github.com/zubairhassan652/go-vue/users"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -63,11 +64,16 @@ func appListChi() map[string]*chi.Mux {
 }
 
 func (app *App) initDB() *gorm.DB {
-	// Open a database connection
-	db, err := gorm.Open(sqlite.Open("sqlite3.db"), &gorm.Config{})
+	// Replace with your PostgreSQL database URL
+	dbURL := "host=localhost port=5432 user=postgres dbname=postgres sslmode=disable password=your-postgres-password"
+
+	// Open a connection to the database
+	db, err := gorm.Open(postgres.Open(dbURL), &gorm.Config{})
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to connect to database:", err)
 	}
+
+	fmt.Println("Connected to database")
 
 	return db
 }
@@ -97,6 +103,17 @@ func (app *App) registerChiRoutes(installedApps map[string]*chi.Mux) {
 	for _, r := range installedApps {
 		app.ChiHandler.Mount("/", r)
 	}
+}
+
+func DBMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		db := DB
+		// client := Mongo
+		ctx := context.WithValue(req.Context(), "db", db)
+		// ctx := context.WithValue(req.Context(), "client", client)
+		req = req.WithContext(ctx)
+		next.ServeHTTP(res, req)
+	})
 }
 
 // project path

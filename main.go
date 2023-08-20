@@ -5,11 +5,11 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/zubairhassan652/go-gorilla-mux/settings"
+	"github.com/zubairhassan652/go-vue/config"
 )
 
 func main() {
-	app := settings.InitApp()
+	app := config.InitApp()
 	fs := http.FileServer(http.Dir("static"))
 	app.ChiHandler.Handle("/static/*", http.StripPrefix("/static/", fs))
 	http.Handle("/", app.ChiHandler)

@@ -3,7 +3,7 @@ package users
 
 import (
 	"github.com/go-chi/chi"
-	"github.com/zubairhassan652/go-gorilla-mux/users/handlers"
+	"github.com/zubairhassan652/go-vue/users/handlers"
 )
 
 func ExposeRoutes() *chi.Mux {
