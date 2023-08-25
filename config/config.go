@@ -5,6 +5,8 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
+	"strings"
 	"sync"
 
 	"github.com/go-chi/chi"
@@ -120,7 +122,13 @@ func (app *WebConfig) loadEnv() {
 	if err := viper.ReadInConfig(); err != nil {
 		log.Println("env not found")
 	}
-	// Unmarshal the configuration into the struct
+	// Set envs from viper to os
+	for _, key := range viper.AllKeys() {
+		os.Setenv(strings.ToUpper(key), viper.GetString(key))
+	}
+	// fmt.Println(viper.AllKeys())
+	// fmt.Println(os.Getenv("DB_HOST"))
+	// Unmarshal configurations into struct
 	if err := viper.Unmarshal(&app.Envs); err != nil {
 		fmt.Printf("Error unmarshaling config: %s\n", err)
 	}
