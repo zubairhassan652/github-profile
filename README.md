@@ -1,6 +1,6 @@
-# My Github Profile For Code Review
+# Go Web Application
 
-Purpose of this repo is to show of standard coding styles or my own coding patterns in `go`.
+Purpose of this repo is to show of standard coding styles of web application or my own coding patterns in `go`.
 
 ### Manage DB
 
