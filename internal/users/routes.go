@@ -3,10 +3,10 @@ package users
 
 import (
 	"github.com/go-chi/chi"
-	"github.com/zubairhassan652/go-vue/users/handlers"
+	"github.com/zubairhassan652/go-vue/internal/users/handlers"
 )
 
-func ExposeRoutes() *chi.Mux {
+func Routes() *chi.Mux {
 	mainRouter := chi.NewRouter()
 	mainRouter.HandleFunc("/", handlers.HandleHome)
 
@@ -19,11 +19,11 @@ func ExposeRoutes() *chi.Mux {
 	mainRouter.Mount("/api", apiRouter)
 
 	apiRouter1 := chi.NewRouter()
-	apiRouter1.HandleFunc("/def", handlers.HandleUsers1)
-	apiRouter1.HandleFunc("/geh", handlers.HandlePosts1)
+	apiRouter1.HandleFunc("/postgres", handlers.HandlePostgres)
+	apiRouter1.HandleFunc("/mongodb", handlers.HandleMongoDB)
 
 	// Attach the /abc router to the main router
-	mainRouter.Mount("/abc", apiRouter1)
+	mainRouter.Mount("/db", apiRouter1)
 
 	return mainRouter
 }

@@ -6,13 +6,15 @@ import (
 	"net/http"
 
 	"github.com/zubairhassan652/go-vue/config"
+	"github.com/zubairhassan652/go-vue/internal/users"
 )
 
 func main() {
 	app := config.InitApp()
 	fs := http.FileServer(http.Dir("static"))
-	app.ChiHandler.Handle("/static/*", http.StripPrefix("/static/", fs))
-	http.Handle("/", app.ChiHandler)
+	app.Router.Handle("/static/*", http.StripPrefix("/static/", fs))
+	RegisterRouters(app)
+	http.Handle("/", app.Router)
 
 	fmt.Println("App listening at 8080")
 
@@ -21,4 +23,9 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func RegisterRouters(app *config.WebConfig) {
+	// Register all the apps here
+	app.Router.Mount("/", users.Routes())
 }

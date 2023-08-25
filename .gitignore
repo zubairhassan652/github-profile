@@ -27,4 +27,7 @@ vendor/
 sqlite.db 
 sqlite3.db
 
+# Envoirment variables files
+.env
+
 

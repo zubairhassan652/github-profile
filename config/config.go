@@ -1,15 +1,14 @@
-// Config package is used to initialized app with default settings
+// Config package is used to initialize app with default settings
 package config
 
 import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
 	"sync"
 
 	"github.com/go-chi/chi"
-	"github.com/zubairhassan652/go-vue/users"
+	"github.com/spf13/viper"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
@@ -17,55 +16,59 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type App struct {
+type env struct {
+	DBHost     string `mapstructure:"DB_HOST"`
+	DBPort     string `mapstructure:"DB_PORT"`
+	DBUser     string `mapstructure:"DB_USER"`
+	DBName     string `mapstructure:"DB_NAME"`
+	DBPassword string `mapstructure:"DB_PASSWORD"`
+	DBSslMode  string `mapstructure:"DB_SSL_MODE"`
+	MongoDBUri string `mapstructure:"MONGO_DB_URI"`
+}
+
+type WebConfig struct {
 	// Its a app level router
-	ChiHandler *chi.Mux
+	Router *chi.Mux
+
+	// Configure app level dbs
+	SqlClient   *gorm.DB
+	MongoClient *mongo.Client
+
+	// Environment variables of the app
+	Envs env
 }
 
 // sync.Once is used to implement singleton pattern.
 var initializer sync.Once
 
 // app instance.
-var app *App
-
-// app level db.
-var DB *gorm.DB
-
-var Mongo *mongo.Client
+var App *WebConfig
 
 func setup() {
-	app = new(App)
-	app.ChiHandler = chi.NewRouter()
-	app.ChiHandler.Use(DBMiddleware)
-
-	app.registerChiRoutes(appListChi())
-	// Mongo = app.initMongo()
-	DB = app.initDB()
+	App = new(WebConfig)
+	App.loadEnv()
+	App.Router = chi.NewRouter()
+	App.MongoClient = App.initMongoClient()
+	App.SqlClient = App.initSqlClient()
 }
 
-func InitApp() *App {
+func InitApp() *WebConfig {
 	initializer.Do(setup)
 
-	return app
+	return App
 }
 
-func GetDB() *gorm.DB {
-	return DB
-}
-
-func GetMongo() *mongo.Client {
-	return Mongo
-}
-
-func appListChi() map[string]*chi.Mux {
-	return map[string]*chi.Mux{
-		"users": users.ExposeRoutes(),
-	}
-}
-
-func (app *App) initDB() *gorm.DB {
+func (app *WebConfig) initSqlClient() *gorm.DB {
 	// Replace with your PostgreSQL database URL
-	dbURL := "host=localhost port=5432 user=postgres dbname=postgres sslmode=disable password=your-postgres-password"
+	dbURL := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=%s password=%s",
+		app.Envs.DBHost,
+		app.Envs.DBPort,
+		app.Envs.DBUser,
+		app.Envs.DBName,
+		app.Envs.DBSslMode,
+		app.Envs.DBPassword,
+	)
+	// dbURL := "host=localhost port=5432 user=postgres dbname=postgres sslmode=disable password=your-postgres-password"
 
 	// Open a connection to the database
 	db, err := gorm.Open(postgres.Open(dbURL), &gorm.Config{})
@@ -73,13 +76,13 @@ func (app *App) initDB() *gorm.DB {
 		log.Fatal("Failed to connect to database:", err)
 	}
 
-	fmt.Println("Connected to database")
+	fmt.Println("Connected to Postgres")
 
 	return db
 }
 
-func (app *App) initMongo() *mongo.Client {
-	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
+func (app *WebConfig) initMongoClient() *mongo.Client {
+	clientOptions := options.Client().ApplyURI(app.Envs.MongoDBUri)
 	client, err := mongo.Connect(context.Background(), clientOptions)
 
 	if err != nil {
@@ -99,21 +102,28 @@ func (app *App) initMongo() *mongo.Client {
 	return client
 }
 
-func (app *App) registerChiRoutes(installedApps map[string]*chi.Mux) {
-	for _, r := range installedApps {
-		app.ChiHandler.Mount("/", r)
-	}
-}
+// func DBMiddleware(next http.Handler) http.Handler {
+// 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+// 		db := App.SqlClient
+// 		// client := Mongo
+// 		ctx := context.WithValue(req.Context(), "db", db)
+// 		// ctx := context.WithValue(req.Context(), "client", client)
+// 		req = req.WithContext(ctx)
+// 		next.ServeHTTP(res, req)
+// 	})
+// }
 
-func DBMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		db := DB
-		// client := Mongo
-		ctx := context.WithValue(req.Context(), "db", db)
-		// ctx := context.WithValue(req.Context(), "client", client)
-		req = req.WithContext(ctx)
-		next.ServeHTTP(res, req)
-	})
+// Load env vars from .env file.
+func (app *WebConfig) loadEnv() {
+	viper.SetConfigFile(".env")
+
+	if err := viper.ReadInConfig(); err != nil {
+		log.Println("env not found")
+	}
+	// Unmarshal the configuration into the struct
+	if err := viper.Unmarshal(&app.Envs); err != nil {
+		fmt.Printf("Error unmarshaling config: %s\n", err)
+	}
 }
 
 // project path
